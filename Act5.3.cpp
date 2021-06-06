@@ -3,6 +3,10 @@
 #include <stack>
 #include <set>
 #include <fstream>
+#include <thread>
+#include <ctime>
+#include <mutex>
+#include <vector>
 
 using namespace std;
 
@@ -253,20 +257,13 @@ public:
   }
 };
 
-int main(int argc, char const *argv[]) {
-  NUMS n;
-  VARS v;
-  SIGN s;
-  ifstream data;
-  string arch;
-  string input;
-  string residuo;
-  cout << "Nombre del archivo : ";
-  cin >> arch;
-  data.open(arch);
-  if(data.is_open()){
-    while(getline(data, input)){
-      while(input != ""){
+
+void checkLine(string input){
+    NUMS n;
+    VARS v;
+    SIGN s;
+    string residuo;
+    while(input != ""){
         char c = input[0];
         if(nums.find(c) != nums.end() || c == '-'){
           residuo = n.proceso(input);
@@ -284,8 +281,54 @@ int main(int argc, char const *argv[]) {
           input.erase(0,1);
         }
       }
+}
+
+void Paralel(string arch){
+    ifstream infile(arch);
+    mutex mtx;
+    while(infile.good()){
+        mtx.lock();
+        string input;
+        getline(infile, input);
+        mtx.unlock();
+        checkLine(input);
+    }
+}
+
+int main(int argc, char const *argv[]) {
+  ifstream data;
+  string arch;
+  string input;
+  int countL = 0;
+
+  cout << "Nombre del archivo : ";
+  cin >> arch;
+  data.open(arch);
+  int startTimeS = clock();
+  if(data.is_open()){
+    cout << "secuencial: " << endl;
+    while(getline(data, input)){
+      checkLine(input);
+      countL++;
     }
   }
+  int endTimeS = clock();
+
+
+  vector<thread> threads;
+  int numT = 4;
+  int Spread = countL/numT;
+  cout << "paralelo: " << endl;
+  int startTimeP = clock();
+  for(int i = 0; i < Spread; i++){
+      threads.emplace_back(Paralel, arch);
+  }
+  for(auto& t : threads){
+      t.join();
+  }
+  int endTimeP = clock();
+  cout << "Tiempo secuencial: " << (endTimeS - startTimeS)/double(CLOCKS_PER_SEC) << endl;
+  cout << "Tiempo paralelo: " << (endTimeP - startTimeP)/double(CLOCKS_PER_SEC) << endl;
   return 0;
 }
 
