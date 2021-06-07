@@ -283,15 +283,12 @@ void checkLine(string input){
       }
 }
 
-void Paralel(string arch){
-    ifstream infile(arch);
+void Paralel(vector<string> lineas, int inicio, int fin){
     mutex mtx;
-    while(infile.good()){
-        mtx.lock();
-        string input;
-        getline(infile, input);
-        mtx.unlock();
-        checkLine(input);
+    for(int i = inicio; i < fin; i++){
+      mtx.lock();
+      checkLine(lineas[i]);
+      mtx.unlock();
     }
 }
 
@@ -299,6 +296,7 @@ int main(int argc, char const *argv[]) {
   ifstream data;
   string arch;
   string input;
+  vector<string> lineas;
   int countL = 0;
 
   cout << "Nombre del archivo : ";
@@ -309,6 +307,7 @@ int main(int argc, char const *argv[]) {
     cout << "secuencial: " << endl;
     while(getline(data, input)){
       checkLine(input);
+      lineas.push_back(input);
       countL++;
     }
   }
@@ -317,11 +316,15 @@ int main(int argc, char const *argv[]) {
 
   vector<thread> threads;
   int numT = 4;
-  int Spread = countL/numT;
+  int Spread = lineas.size()/numT;
+  int inicio = 0;
+  int fin = Spread; 
   cout << "paralelo: " << endl;
   int startTimeP = clock();
-  for(int i = 0; i < Spread; i++){
-      threads.emplace_back(Paralel, arch);
+  for(unsigned int i = 0; i < numT; i++){
+      threads.push_back(thread(Paralel, lineas, inicio, fin));
+      inicio += Spread;
+      fin += Spread;
   }
   for(auto& t : threads){
       t.join();
