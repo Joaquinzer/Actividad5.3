@@ -1,3 +1,7 @@
+// Jose Antonio López A01610805
+// Joaquin Zermeño A01610399
+// Act 5.3
+// To compile: g++ -std=c++11 Act5.3.cpp -pthread
 #include <iostream>
 #include <string>
 #include <stack>
@@ -9,6 +13,7 @@
 #include <vector>
 
 using namespace std;
+
 
 set<char> nums = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 set<char> letras = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a',
